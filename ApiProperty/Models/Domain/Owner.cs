@@ -1,18 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace ApiProperty.Models.Domain
-{
-    public class Owner
-    {
-        public int IdOwner { get; set; }
-        public string Name { get; set; }
-        public string Address { get; set; }
-        public byte[] Photo { get; set; }
-        public DateTime Birthday { get; set; }
+namespace ApiProperty.Models.Domain;
 
-        // Relación con Property (uno a muchos)
-        public List<Property> Properties { get; set; }
-    }
+public partial class Owner
+{
+    public int IdOwner { get; set; }
+
+    public string Name { get; set; } = null!;
+
+    public string? Address { get; set; }
+
+    public byte[]? Photo { get; set; }
+
+    public DateTime? Birthday { get; set; }
+
+    public virtual ICollection<Property> Properties { get; set; } = new List<Property>();
 }

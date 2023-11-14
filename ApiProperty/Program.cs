@@ -1,6 +1,9 @@
 using ApiProperty.DataAccess;
 using ApiProperty.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,9 +13,15 @@ builder.Services.AddScoped<IPropertyService, PropertyService>();
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Configure Entity Framework Core
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<PropertyDbContext>(options =>
+// Configurar Entity Framework Core
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(builder.Environment.ContentRootPath)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .Build();
+
+var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<DbpropertyJfazContext>(options =>
 {
     options.UseSqlServer(connectionString);
 });
@@ -23,7 +32,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configurar el pipeline de solicitudes HTTP.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

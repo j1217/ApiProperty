@@ -1,17 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 
-namespace ApiProperty.Models.Domain
+namespace ApiProperty.Models.Domain;
+
+public partial class PropertyTrace
 {
-    public class PropertyTrace
-    {
-        public int IdPropertyTrace { get; set; }
-        public DateTime DataSale { get; set; }
-        public string Name { get; set; }
-        public decimal Value { get; set; }
-        public decimal Tax { get; set; }
+    public int IdPropertyTrace { get; set; }
 
-        // Relación con Property (uno a uno)
-        public int IdProperty { get; set; }
-        public Property Property { get; set; }
-    }
+    public DateTime? DataSale { get; set; }
+
+    public string? Name { get; set; }
+
+    public decimal? Value { get; set; }
+
+    public decimal? Tax { get; set; }
+
+    public int? IdProperty { get; set; }
+
+    public virtual Property? IdPropertyNavigation { get; set; }
 }

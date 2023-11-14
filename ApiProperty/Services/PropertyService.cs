@@ -1,7 +1,8 @@
 ﻿using System;
-using ApiProperty.Models.Domain;
-using ApiProperty.DataAccess;
+using System.Collections.Generic;
 using System.Linq;
+using ApiProperty.DataAccess;
+using ApiProperty.Models.Domain;
 using ApiProperty.Models.DTO;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,9 +19,9 @@ namespace ApiProperty.Services
 
     public class PropertyService : IPropertyService
     {
-        private readonly PropertyDbContext _context;
+        private readonly DbpropertyJfazContext _context;
 
-        public PropertyService(PropertyDbContext context)
+        public PropertyService(DbpropertyJfazContext context)
         {
             _context = context;
         }
@@ -44,27 +45,11 @@ namespace ApiProperty.Services
                 throw new ArgumentException("El precio de la propiedad debe ser mayor que cero.");
             }
 
-            // Validacion adicional segun lo requiera el cliente
-            //if (property.Year < 1800 || property.Year > DateTime.Now.Year)
-            //{
-            //    throw new ArgumentException("El año de construcción debe estar dentro de un rango válido.");
-            //}
-
             // Validación de duplicados (ejemplo: nombre de propiedad único)
             if (_context.Properties.Any(p => p.Name == property.Name))
             {
                 throw new ArgumentException("Ya existe una propiedad con el mismo nombre.");
             }
-
-            // Validacion adicional segun lo requiera el cliente
-            // Validación de propietario existente (si aplica)
-            //if (property.IdOwner != null)
-            //{
-            //    if (!_context.Owners.Any(o => o.IdOwner == property.IdOwner))
-            //    {
-            //        throw new ArgumentException("El propietario especificado no existe.");
-            //    }
-            //}
 
             // Guardar la propiedad en la base de datos
             _context.Properties.Add(property);
@@ -81,7 +66,7 @@ namespace ApiProperty.Services
                     (filter.Year <= 0 || p.Year == filter.Year) && // Filtrar por año (si se proporciona)
                     (filter.Price <= 0 || p.Price == filter.Price) && // Filtrar por precio (si se proporciona)
                     (filter.IdOwner <= 0 || p.IdOwner == filter.IdOwner)) // Filtrar por ID del propietario (si se proporciona)
-                .Include(p => p.Owner) // Incluir información del propietario
+                .Include(p => p.IdOwnerNavigation) // Incluir información del propietario
                 .Include(p => p.PropertyImages) // Incluir información de las imágenes de propiedad
                 .Include(p => p.PropertyTraces); // Incluir información de los rastros de propiedad
 
@@ -89,18 +74,21 @@ namespace ApiProperty.Services
             var result = query
                 .Select(p => new PropertyInfo
                 {
+                    IdProperty = p.IdProperty,
                     Name = p.Name,
                     Address = p.Address,
                     Price = p.Price,
                     CodeInternal = p.CodeInternal,
                     Year = p.Year,
-                    OwnerName = p.Owner.Name, // Obtener el nombre del propietario
+                    OwnerName = p.IdOwnerNavigation.Name, // Obtener el nombre del propietario
                     PropertyImages = p.PropertyImages.Select(pi => new PropertyImage
                     {
+                        IdPropertyImage = pi.IdPropertyImage,
                         FileProperty = pi.FileProperty // Obtener las imágenes de propiedad
                     }).ToList(),
                     PropertyTraces = p.PropertyTraces.Select(pt => new PropertyTraceInfo
                     {
+                        IdPropertyTrace = pt.IdPropertyTrace,
                         DataSale = pt.DataSale,
                         Name = pt.Name,
                         Value = pt.Value,
@@ -112,8 +100,13 @@ namespace ApiProperty.Services
             return result;
         }
 
+
         public Property UpdateProperty(int propertyId, Property updatedProperty)
         {
+            if (updatedProperty is null)
+            {
+                throw new ArgumentNullException(nameof(updatedProperty));
+            }
             // Buscar la propiedad existente en la base de datos por su ID
             var existingProperty = _context.Properties
                 .Include(p => p.PropertyTraces)
@@ -126,7 +119,7 @@ namespace ApiProperty.Services
                 throw new ArgumentException("La propiedad no existe o no se puede actualizar.");
             }
 
-            // Realizar validaciones adicionales
+            // Realizar validaciones adicionales (ajusta según tus necesidades)
             if (string.IsNullOrEmpty(updatedProperty.Name))
             {
                 throw new ArgumentException("El nombre de la propiedad es obligatorio.");
@@ -174,6 +167,7 @@ namespace ApiProperty.Services
             return existingProperty; // Devolver la propiedad actualizada
         }
 
+
         public Property ChangePrice(int propertyId, decimal newPrice)
         {
             // Buscar la propiedad existente en la base de datos por su ID
@@ -182,7 +176,7 @@ namespace ApiProperty.Services
             if (existingProperty == null)
             {
                 // Manejo de error si la propiedad no se encuentra
-                throw new ArgumentException("La propiedad no existe o no se puede actualizar el precio.");
+                throw new ArgumentException("La propiedad no existe.");
             }
 
             if (newPrice <= 0)
@@ -199,6 +193,7 @@ namespace ApiProperty.Services
 
             return existingProperty; // Devolver la propiedad actualizada
         }
+
 
         public PropertyImage AddPropertyImage(int propertyId, byte[] imageBytes)
         {
@@ -226,6 +221,7 @@ namespace ApiProperty.Services
 
             return newPropertyImage; // Devolver la imagen recién agregada
         }
+
 
     }
 }

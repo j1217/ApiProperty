@@ -1,13 +1,17 @@
-﻿namespace ApiProperty.Models.Domain
-{
-    public class PropertyImage
-    {
-        public int IdPropertyImage { get; set; }
-        public byte[] FileProperty { get; set; }
-        public bool Enable { get; set; }
+﻿using System;
+using System.Collections.Generic;
 
-        // Relación con Property (uno a uno)
-        public int IdProperty { get; set; }
-        public Property Property { get; set; }
-    }
+namespace ApiProperty.Models.Domain;
+
+public partial class PropertyImage
+{
+    public int IdPropertyImage { get; set; }
+
+    public int? IdProperty { get; set; }
+
+    public byte[]? FileProperty { get; set; }
+
+    public bool? Enable { get; set; }
+
+    public virtual Property? IdPropertyNavigation { get; set; }
 }
